@@ -7,6 +7,8 @@ import (
   "text/template"
   "flag"
   "sync"
+  "os"
+  "trace"
 )
 
 // temp1は1つのテンプレートを表します
@@ -29,6 +31,7 @@ func main() {
   flag.Parse() // フラグを解釈します
 
   r := newRoom()
+  r.tracer = trace.New(os.Stdout) // os.Stdout ログの出力先を標準出力にする
 
   http.Handle("/", &templateHandler{filename: "chat.html"})
   http.Handle("/room", r)
