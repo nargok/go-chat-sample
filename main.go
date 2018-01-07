@@ -5,26 +5,40 @@ import (
   "net/http"
   "path/filepath"
   "text/template"
+  "flag"
+  "sync"
 )
 
 // temp1は1つのテンプレートを表します
-type templ struct {
-  source string
+type templateHandler struct {
+  once sync.Once
+  filename string
   templ  *template.Template
 }
 
 // ServerHTTPはHTTPリクエストを処理します
-func (t *templ) Handle(w http.ResponseWriter, r *http.Request) {
-  if t.templ == nil {
-    t.templ = template.Must(template.ParseFiles(filepath.Join("templates", t.source)))
-  }
-  t.templ.Execute(w, nil)
+func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  t.once.Do(func() {
+    t.templ = template.Must(template.ParseFiles(filepath.Join("templates", t.filename)))
+  })
+  t.templ.Execute(w, r)
 }
 
 func main() {
-  http.HandleFunc("/", (&templ{source: "chat.html"}).Handle)
-    // webサーバを開始します
-    if err := http.ListenAndServe(":8080", nil); err != nil {
-      log.Fatal("ListenAndServe:", err)
-    }
+  var address = flag.String("address", ":8080", "アプリケーションのアドレス")
+  flag.Parse() // フラグを解釈します
+
+  r := newRoom()
+
+  http.Handle("/", &templateHandler{filename: "chat.html"})
+  http.Handle("/room", r)
+
+  // チャットルームを開始します
+  go r.run()
+
+  // webサーバを開始します
+  log.Println("Webサーバを開始します。ポート: ", *address) // ログを画面に出力する
+  if err := http.ListenAndServe(":8080", nil); err != nil {
+    log.Fatal("ListenAndServe:", err)
+  }
 }
