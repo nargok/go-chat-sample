@@ -33,7 +33,8 @@ func main() {
   r := newRoom()
   r.tracer = trace.New(os.Stdout) // os.Stdout ログの出力先を標準出力にする
 
-  http.Handle("/", &templateHandler{filename: "chat.html"})
+  http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
+  http.Handle("/login", &templateHandler{filename: "login.html"})
   http.Handle("/room", r)
 
   // チャットルームを開始します
