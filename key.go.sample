@@ -1,0 +1,4 @@
+package main
+
+const GoogleClientId = "aaaaaaaaaaaaaaaaaaaaaaa"
+const GoogleSecretId = "bbbbbbbbbbbbbbbbbbbbbbb"
